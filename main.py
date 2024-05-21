@@ -1,36 +1,41 @@
 import streamlit as st
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# Function to generate chatbot responses
-def generate_response(message):
-    if "hello" in message.lower():
-        return "Hi there! How can I help you?"
-    elif "bye" in message.lower():
-        return "Goodbye! Have a nice day!"
-    elif "help" in message.lower():
-        return "Sure, I am here to help you. What do you need assistance with?"
-    else:
-        return "I'm not sure how to respond to that. Can you please rephrase?"
-# Initialize session state
-if 'history' not in st.session_state:
-    st.session_state.history = []
-if 'input' not in st.session_state:
-    st.session_state.input = ""
+# Load pre-trained model and tokenizer
+@st.cache_resource
+def load_model():
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    model = GPT2LMHeadModel.from_pretrained("gpt2")
+    return tokenizer, model
 
+tokenizer, model = load_model()
+
+
+# Function to generate chatbot responses using GPT-2
+def generate_response(prompt):
+    inputs = tokenizer.encode(prompt, return_tensors="pt")
+    outputs = model.generate(inputs, max_length=100, num_return_sequences=1, no_repeat_ngram_size=2)
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return response
 
 # Streamlit application
-st.title("Simple Chatbot")
+st.title("AI Chatbot")
 
-def send_message():
-    user_input = st.session_state.input
+
+if 'history' not in st.session_state:
+    st.session_state.history = []
+
+
+# User input
+user_input = st.text_input("You: ", key="input")
+
+if st.button("Send"):
     if user_input:
         st.session_state.history.append(f"You: {user_input}")
         response = generate_response(user_input)
         st.session_state.history.append(f"Bot: {response}")
-        st.session_state.input = "" # Clear the input after sending
+        st.session_state.input = ""
 
-
-# User input
-st.text_input("You: ", key="input", on_change=send_message)
 
 # Display conversation history
 for message in st.session_state.history:
