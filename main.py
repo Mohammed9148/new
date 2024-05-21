@@ -10,22 +10,27 @@ def generate_response(message):
         return "Sure, I am here to help you. What do you need assistance with?"
     else:
         return "I'm not sure how to respond to that. Can you please rephrase?"
+# Initialize session state
+if 'history' not in st.session_state:
+    st.session_state.history = []
+if 'input' not in st.session_state:
+    st.session_state.input = ""
+
 
 # Streamlit application
 st.title("Simple Chatbot")
 
-if 'history' not in st.session_state:
-    st.session_state.history = []
-
-# User input
-user_input = st.text_input("You: ", key="input")
-
-if st.button("Send"):
+def send_message():
+    user_input = st.session_state.input
     if user_input:
         st.session_state.history.append(f"You: {user_input}")
         response = generate_response(user_input)
         st.session_state.history.append(f"Bot: {response}")
-        st.session_state.input = ""
+        st.session_state.input = "" # Clear the input after sending
+
+
+# User input
+st.text_input("You: ", key="input", on_change=send_message)
 
 # Display conversation history
 for message in st.session_state.history:
