@@ -1,3 +1,5 @@
+import streamlit as st
+
 # Function to generate chatbot responses
 def generate_response(message):
     if "hello" in message.lower():
