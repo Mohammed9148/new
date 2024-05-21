@@ -8,8 +8,8 @@ def load_model():
     model = GPT2LMHeadModel.from_pretrained("gpt2")
     return tokenizer, model
 
-
 tokenizer, model = load_model()
+
 
 # Function to generate chatbot responses using GPT-2
 def generate_response(prompt):
@@ -27,23 +27,16 @@ def send_message():
         st.session_state.history.append(f"Bot: {response}")
         st.session_state.input = ""  # Clear the input after sending
 
+# Streamlit application
+st.title("AI Chatbot")
 
-# Streamlit applicationst.title("AI Chatbot")
+
+# Initialize session state
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-
-
 # User input
-user_input = st.text_input("You: ", key="input")
-
-if st.button("Send"):
-    if user_input:
-        st.session_state.history.append(f"You: {user_input}")
-        response = generate_response(user_input)
-        st.session_state.history.append(f"Bot: {response}")
-        st.session_state.input = ""
-
+st.text_input("You: ", key="input", on_change=send_message)
 
 # Display conversation history
 for message in st.session_state.history:
