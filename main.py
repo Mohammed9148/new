@@ -18,6 +18,16 @@ def generate_response(prompt):
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
 
+# Callback function to handle user input and generate response
+def send_message():
+    user_input = st.session_state.input
+    if user_input:
+        st.session_state.history.append(f"You: {user_input}")
+        response = generate_response(user_input)
+        st.session_state.history.append(f"Bot: {response}")
+        st.session_state.input = ""  # Clear the input after sending
+
+
 # Streamlit applicationst.title("AI Chatbot")
 if 'history' not in st.session_state:
     st.session_state.history = []
