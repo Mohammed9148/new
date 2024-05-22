@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import AutoModelForCasualLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load pre-trained model and tokenizer
 @st.cache_resource
