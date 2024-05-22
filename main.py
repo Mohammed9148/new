@@ -4,8 +4,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # Load pre-trained model and tokenizer
 @st.cache_resource
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
-    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B")
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-2.7B")
+    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-2.7B")
     return tokenizer, model
 
 tokenizer, model = load_model()
@@ -28,7 +28,7 @@ def send_message():
         st.session_state.input = ""  # Clear the input after sending
 
 # Streamlit application
-st.title("EleutherAI/gpt-j-6B")
+st.title("EleutherAI/gpt-neo-2.7B")
 
 
 # Initialize session state
