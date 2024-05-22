@@ -28,7 +28,7 @@ def send_message():
         st.session_state.input = ""  # Clear the input after sending
 
 # Streamlit application
-st.title("AI Chatbot")
+st.title("EleutherAI/gpt-j-6B")
 
 
 # Initialize session state
