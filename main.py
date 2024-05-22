@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 @st.cache_resource
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
-    model = AutoModelForCasualLM.from_pretrained("distilgpt2")
+    model = AutoModelForCausalLM.from_pretrained("distilgpt2")
     return tokenizer, model
 
 tokenizer, model = load_model()
