@@ -4,8 +4,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # Load pre-trained model and tokenizer
 @st.cache_resource
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
-    model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
+    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B")
     return tokenizer, model
 
 tokenizer, model = load_model()
