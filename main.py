@@ -1,20 +1,20 @@
 import streamlit as st
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import AutoModelForCasualLM, AutoTokenizer
 
 # Load pre-trained model and tokenizer
 @st.cache_resource
 def load_model():
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-    model = GPT2LMHeadModel.from_pretrained("gpt2")
+    tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+    model = AutoModelForCasualLM.from_pretrained("distilgpt2")
     return tokenizer, model
 
 tokenizer, model = load_model()
 
 
-# Function to generate chatbot responses using GPT-2
+# Function to generate chatbot responses using distilGPT-2
 def generate_response(prompt):
     inputs = tokenizer.encode(prompt, return_tensors="pt")
-    outputs = model.generate(inputs, max_length=100, num_return_sequences=1, no_repeat_ngram_size=2)
+    outputs = model.generate(inputs, max_length=150, num_return_sequences=1, no_repeat_ngram_size=2)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
 
