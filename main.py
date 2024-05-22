@@ -1,11 +1,11 @@
 import streamlit as st
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import AutoModelForCasualLM, AutoTokenizer
 
 # Load pre-trained model and tokenizer
 @st.cache_resource
 def load_model():
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large")
-    model = GPT2LMHeadModel.from_pretrained("gpt2-large")
+    tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+    model = AutoModelForCasualLM.from_pretrained("distilgpt2")
     return tokenizer, model
 
 tokenizer, model = load_model()
