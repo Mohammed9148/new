@@ -14,4 +14,4 @@ user_input = st.text_input("Type your message here:")
 
 if st.button("Send"):
     response = llm.invoke(user_input)
-    st.write("Response:", response['content'])
+    st.write("Response:", response.content)
