@@ -13,7 +13,7 @@ llm = AzureChatOpenAI(
 
 # Function to extract text from PDF
 def extract_text_from_pdf(pdf_file):
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file)
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
     text = ""
     for page_num in range(pdf_reader.getNumPages()):
         page = pdf_reader.getPage(page_num)
