@@ -1,6 +1,11 @@
 import streamlit as st
 import PyPDF2
 from langchain_openai import AzureChatOpenAI
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+import pickle
+
 
 llm = AzureChatOpenAI(
     model="gpt-35-turbo-16k",
@@ -11,31 +16,32 @@ llm = AzureChatOpenAI(
 )
 
 
-# Function to extract text from PDF
-def extract_text_from_pdf(pdf_file):
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+# Load preprocessed data
+with open('preprocessed_data.pkl', 'rb') as f:
+    chunks, embeddings = pickle.load(f)
+
+# Function to perform similarity search and get the most relevant chunk
+def get_relevant_chunk(question, chunks, embeddings):
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    question_embedding = model.encode([question])
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings)
+    _, I = index.search(question_embedding, 1)
+    return chunks[I[0][0]]
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        prompt = f"Answer the following question based on this text: {st.session_state.pdf_text}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question, chunks, embeddings)
+        prompt = f"Answer the following question based on this text: {relevant_chunk}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
         response = llm.invoke(prompt)
         st.session_state.response = response.content
 
 # Streamlit app interface
 st.title("PDF Chatbot with Azure OpenAI")
-uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
-if uploaded_file is not None:
-    pdf_text = extract_text_from_pdf(uploaded_file)
-    st.session_state.pdf_text = pdf_text
-    st.write("PDF content successfully extracted. You can now ask questions based on this content.")
+st.text_input("Type your question here:", key="user_question", on_change=handle_question)
 
-    st.text_input("Type your question here:", key="user_question", on_change=handle_question)
+if "response" in st.session_state:
+    st.write("Response:", st.session_state.response)
 
-    if "response" in st.session_state:
-        st.write("Response:", st.session_state.response)
