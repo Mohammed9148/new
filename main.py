@@ -15,7 +15,7 @@ llm = AzureChatOpenAI(
 def extract_text_from_pdf(pdf_file):
     pdf_reader = PyPDF2.PdfReader(pdf_file)
     text = ""
-    for page_num in range(pdf_reader.getNumPages()):
+    for page_num in range(pdf_reader.len(reader.pages)):
         page = pdf_reader.getPage(page_num)
         text += page.extract_text()
     return text
