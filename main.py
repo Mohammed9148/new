@@ -25,7 +25,7 @@ st.title("Chat with Azure OpenAI")
 uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
 if uploaded_file is not None:
-    pdf_text = extratct_text_from_pdf(uploaded_file)
+    pdf_text = extract_text_from_pdf(uploaded_file)
     st.write("Pdf successfully extracted")
     
     st.text_input("Type your question here:", key ="user_question", on_change=handle_question)
