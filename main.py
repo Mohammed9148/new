@@ -1,15 +1,13 @@
 import streamlit as st
-import PyPDF2
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import pickle
 import requests
-import os
 
 # URL to the preprocessed data file on GitHub
-preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
+preprocessed_data_url = 'https://raw.githubusercontent.com/your-username/your-repo/main/preprocessed_data.pkl'
 
 # Download preprocessed data
 @st.cache_data
@@ -19,7 +17,8 @@ def download_preprocessed_data(url):
         r.raise_for_status()
         with open(local_filename, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+                if chunk:
+                    f.write(chunk)
     return local_filename
 
 @st.cache_data
