@@ -5,5 +5,5 @@ pyngrok
 langchain_openai
 PyPDF2
 sentence-transformers
-faiss
+faiss-cpu
 pickle
