@@ -1,34 +1,47 @@
 import streamlit as st
+import PyPDF2
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import pickle
 import requests
+import os
 
 # URL to the preprocessed data file on GitHub
-preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
+preprocessed_data_url = 'https://raw.githubusercontent.com/your-username/your-repo/main/preprocessed_data.pkl'
 
-# Download preprocessed data
+# Function to download preprocessed data
 @st.cache_data
 def download_preprocessed_data(url):
     local_filename = 'preprocessed_data.pkl'
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+    response = requests.get(url, stream=True)
+    response.raise_for_status() # Ensure we got a valid response
+
+    with open(local_filename, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+    
+    # Check the downloaded file size
+    file_size = os.path.getsize(local_filename)
+    st.write(f"Downloaded file size: {file_size} bytes")
+    
     return local_filename
 
+# Function to load preprocessed data
 @st.cache_data
 def load_preprocessed_data(filepath):
     with open(filepath, 'rb') as f:
-        return pickle.load(f)
+        data = pickle.load(f)
+    return data
 
-# Load preprocessed data
-data_file = download_preprocessed_data(preprocessed_data_url)
-chunks, embeddings = load_preprocessed_data(data_file)
+# Ensure the download and loading functions work correctly
+try:
+    data_file = download_preprocessed_data(preprocessed_data_url)
+    chunks, embeddings = load_preprocessed_data(data_file)
+except Exception as e:
+    st.error(f"Error loading preprocessed data: {e}")
+    st.stop()
 
 # Load Sentence Transformer model
 @st.cache_resource
