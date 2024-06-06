@@ -6,4 +6,3 @@ langchain_openai
 PyPDF2
 sentence-transformers
 faiss-cpu
-pickle
