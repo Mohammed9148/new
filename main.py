@@ -1,5 +1,4 @@
 import streamlit as st
-import PyPDF2
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -16,7 +15,7 @@ preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preproces
 def download_preprocessed_data(url):
     local_filename = 'preprocessed_data.pkl'
     response = requests.get(url, stream=True)
-    response.raise_for_status() # Ensure we got a valid response
+    response.raise_for_status()  # Ensure we got a valid response
 
     with open(local_filename, 'wb') as f:
         for chunk in response.iter_content(chunk_size=8192):
@@ -39,6 +38,7 @@ def load_preprocessed_data(filepath):
 try:
     data_file = download_preprocessed_data(preprocessed_data_url)
     chunks, embeddings = load_preprocessed_data(data_file)
+
 except Exception as e:
     st.error(f"Error loading preprocessed data: {e}")
     st.stop()
@@ -54,7 +54,7 @@ model = load_model()
 llm = AzureChatOpenAI(
     model="gpt-35-turbo-16k",
     deployment_name="VISAGenAI",
-    api_key="dbb69df9354846529d8994cb313275e0",
+    api_key="your-azure-api-key",
     azure_endpoint="https://visagenai.openai.azure.com/",
     api_version="2024-02-01",
 )
