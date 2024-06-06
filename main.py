@@ -5,9 +5,40 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import pickle
+import requests
 import os
 
+# URL to the preprocessed data file on GitHub
+preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
 
+# Download preprocessed data
+@st.cache_data
+def download_preprocessed_data(url):
+    local_filename = 'preprocessed_data.pkl'
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    return local_filename
+
+@st.cache_data
+def load_preprocessed_data(filepath):
+    with open(filepath, 'rb') as f:
+        return pickle.load(f)
+
+# Load preprocessed data
+data_file = download_preprocessed_data(preprocessed_data_url)
+chunks, embeddings = load_preprocessed_data(data_file)
+
+# Load Sentence Transformer model
+@st.cache_resource
+def load_model():
+    return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+model = load_model()
+
+# Initialize Azure OpenAI model
 llm = AzureChatOpenAI(
     model="gpt-35-turbo-16k",
     deployment_name="VISAGenAI",
@@ -16,14 +47,8 @@ llm = AzureChatOpenAI(
     api_version="2024-02-01",
 )
 
-
-# Load preprocessed data
-with open('preprocessed_data.pkl', 'rb') as f:
-    chunks, embeddings = pickle.load(f)
-
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question, chunks, embeddings):
-    model = SentenceTransformer('all-MiniLM-L6-v2')
     question_embedding = model.encode([question])
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(embeddings)
@@ -45,4 +70,3 @@ st.text_input("Type your question here:", key="user_question", on_change=handle_
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-
