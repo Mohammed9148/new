@@ -63,7 +63,7 @@ model = load_model()
 llm = AzureChatOpenAI(
     model="gpt-35-turbo-16k",
     deployment_name="VISAGenAI",
-    api_key="your-azure-api-key",
+    api_key="dbb69df9354846529d8994cb313275e0",
     azure_endpoint="https://visagenai.openai.azure.com/",
     api_version="2024-02-01",
 )
