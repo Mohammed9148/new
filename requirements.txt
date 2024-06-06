@@ -4,3 +4,4 @@ langchain-community
 pyngrok
 langchain_openai
 PyPDF2
+sentence-transformers
