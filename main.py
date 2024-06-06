@@ -37,7 +37,16 @@ def load_preprocessed_data(filepath):
 # Ensure the download and loading functions work correctly
 try:
     data_file = download_preprocessed_data(preprocessed_data_url)
-    chunks, embeddings = load_preprocessed_data(data_file)
+    data = load_preprocessed_data(data_file)
+    # Check if data is a tuple containing chunks and embeddings
+    if isinstance(data, tuple) and len(data) == 2:
+        chunks, embeddings = data
+        st.write("Data loaded successfully.")
+        st.write(f"Number of chunks: {len(chunks)}")
+        st.write(f"Shape of embeddings: {embeddings.shape}")
+    else:
+        st.error("Data is not in the expected format.")
+        st.stop()
 
 except Exception as e:
     st.error(f"Error loading preprocessed data: {e}")
