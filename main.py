@@ -9,7 +9,7 @@ import requests
 import os
 
 # URL to the preprocessed data file on GitHub
-preprocessed_data_url = 'https://raw.githubusercontent.com/your-username/your-repo/main/preprocessed_data.pkl'
+preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
 
 # Function to download preprocessed data
 @st.cache_data
