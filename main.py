@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
-import weaviate
+import pinecone
 import numpy as np
 import pickle
 import requests
@@ -68,48 +68,30 @@ llm = AzureChatOpenAI(
     api_version="2024-02-01",
 )
 
-# Initialize Weaviate client
-client = weaviate.Client("http://localhost:8080")
+# Initialize Pinecone client
+pinecone.init(api_key="YOUR_PINECONE_API_KEY", environment="YOUR_PINECONE_ENVIRONMENT")
+index_name = "your-index-name"
 
-# Create Weaviate schema
-class_obj = {
-    "class": "Chunk",
-    "properties": [
-        {
-            "name": "text",
-            "dataType": ["text"],
-        },
-        {
-            "name": "embedding",
-            "dataType": ["number[]"],
-        }
-    ]
-}
+# Create Pinecone index
+if index_name not in pinecone.list_indexes():
+    pinecone.create_index(index_name, dimension=embeddings.shape[1])
 
-client.schema.create_class(class_obj)
+index = pinecone.Index(index_name)
 
-# Function to add chunks and embeddings to Weaviate
-def add_chunks_to_weaviate(chunks, embeddings):
-    for chunk, embedding in zip(chunks, embeddings):
-        properties = {
-            "text": chunk,
-            "embedding": embedding.tolist()
-        }
-        client.data_object.create(properties, "Chunk")
+# Function to add chunks and embeddings to Pinecone
+def add_chunks_to_pinecone(chunks, embeddings):
+    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+        index.upsert(vectors=[(str(i), embedding)])
 
-# Add chunks and embeddings to Weaviate
-add_chunks_to_weaviate(chunks, embeddings)
+# Add chunks and embeddings to Pinecone
+add_chunks_to_pinecone(chunks, embeddings)
 
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question):
-    question_embedding = model.encode([question]).tolist()
-    response = client.query.get("Chunk", ["text"]).with_near_vector({
-        "vector": question_embedding,
-        "certainty": 0.7
-    }).do()
-    
-    if response and response['data']['Get']['Chunk']:
-        return response['data']['Get']['Chunk'][0]['text']
+    question_embedding = model.encode([question])
+    response = index.query(queries=[question_embedding], top_k=1)
+    if response and response['matches']:
+        return chunks[int(response['matches'][0]['id'])]
     else:
         return "No relevant chunk found."
 
