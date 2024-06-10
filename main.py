@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
-import pinecone
+import faiss
 import numpy as np
 import pickle
 import requests
@@ -68,37 +68,18 @@ llm = AzureChatOpenAI(
     api_version="2024-02-01",
 )
 
-# Initialize Pinecone client
-pinecone.init(api_key="YOUR_PINECONE_API_KEY", environment="YOUR_PINECONE_ENVIRONMENT")
-index_name = "your-index-name"
-
-# Create Pinecone index
-if index_name not in pinecone.list_indexes():
-    pinecone.create_index(index_name, dimension=embeddings.shape[1])
-
-index = pinecone.Index(index_name)
-
-# Function to add chunks and embeddings to Pinecone
-def add_chunks_to_pinecone(chunks, embeddings):
-    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
-        index.upsert(vectors=[(str(i), embedding)])
-
-# Add chunks and embeddings to Pinecone
-add_chunks_to_pinecone(chunks, embeddings)
-
 # Function to perform similarity search and get the most relevant chunk
-def get_relevant_chunk(question):
+def get_relevant_chunk(question, chunks, embeddings):
     question_embedding = model.encode([question])
-    response = index.query(queries=[question_embedding], top_k=1)
-    if response and response['matches']:
-        return chunks[int(response['matches'][0]['id'])]
-    else:
-        return "No relevant chunk found."
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings)
+    _, I = index.search(question_embedding, 1)
+    return chunks[I[0][0]]
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question, chunks, embeddings)
         prompt = f"Answer the following question based on this text: {relevant_chunk}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
         response = llm.invoke(prompt)
         st.session_state.response = response.content
