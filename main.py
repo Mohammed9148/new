@@ -105,17 +105,21 @@ def get_relevant_chunk(question):
         "vector": question_embedding,
         "certainty": 0.7  # Adjust based on your requirement
     }
-    result = client.query.get("DocumentChunk", ["text"]).with_near_vector(near_vector).do()
-    
-    # Print the entire response to understand its structure
-    st.write("Weaviate response:", result)
-    
-    # Handle the response safely
-    document_chunks = result.get('data', {}).get('Get', {}).get('DocumentChunk', [])
-    if document_chunks:
-        return document_chunks[0].get('text', "No text found.")
-    else:
-        return "No relevant chunk found."
+    try:
+        result = client.query.get("DocumentChunk", ["text"]).with_near_vector(near_vector).do()
+        
+        # Print the entire response to understand its structure
+        st.write("Weaviate response:", result)
+        
+        # Handle the response safely
+        document_chunks = result.get('data', {}).get('Get', {}).get('DocumentChunk', [])
+        if document_chunks:
+            return document_chunks[0].get('text', "No text found.")
+        else:
+            return "No relevant chunk found."
+    except Exception as e:
+        st.error(f"Error during Weaviate query: {e}")
+        return "Error during Weaviate query."
 
 # Function to handle question submission
 def handle_question():
