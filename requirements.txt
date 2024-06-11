@@ -8,4 +8,4 @@ sentence-transformers
 faiss-cpu
 requests
 numpy
-pinecone-client
+weaviate-client
