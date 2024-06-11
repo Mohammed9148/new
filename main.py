@@ -7,7 +7,7 @@ import os
 import pickle
 
 # URL to the preprocessed data file on GitHub
-preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
+preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/preprocessed_data.pkl'
 
 # Function to download preprocessed data
 @st.cache_data
@@ -23,7 +23,12 @@ def download_preprocessed_data(url):
     # Check the downloaded file size
     file_size = os.path.getsize(local_filename)
     st.write(f"Downloaded file size: {file_size} bytes")
-    
+
+    # Optional: Print first few bytes to check content
+    with open(local_filename, 'rb') as f:
+        file_start = f.read(10)
+        st.write(f"File starts with: {file_start}")
+
     return local_filename
 
 # Function to load preprocessed data
