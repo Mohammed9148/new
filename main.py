@@ -62,14 +62,6 @@ client = weaviate.Client(
     auth_client_secret=weaviate.AuthApiKey(api_key="viv4g4LcZpE7DDNQx6Fc9Yj3oK7n6DwIeZWF")  # Replace with your API key
 )
 
-# Function to verify data upload to Weaviate
-def verify_data_upload():
-    query = client.query.get("DocumentChunk", ["text", "embedding"]).do()
-    st.write("Weaviate data:", query)
-
-# Verify data upload to Weaviate
-verify_data_upload()
-
 # Function to upload data to Weaviate
 def upload_data_to_weaviate(chunks, embeddings):
     for chunk, embedding in zip(chunks, embeddings):
@@ -79,8 +71,22 @@ def upload_data_to_weaviate(chunks, embeddings):
         }
         client.data_object.create(data_object, "DocumentChunk")
 
-# Upload data to Weaviate
-upload_data_to_weaviate(chunks, embeddings)
+# Check if data is already uploaded to Weaviate
+if st.button('Upload Data to Weaviate'):
+    upload_data_to_weaviate(chunks, embeddings)
+    st.write("Data uploaded to Weaviate successfully.")
+
+# Function to verify data upload to Weaviate
+def verify_data_upload():
+    try:
+        query = client.query.get("DocumentChunk", ["text", "embedding"]).do()
+        st.write("Weaviate data:", query)
+    except Exception as e:
+        st.write(f"Error verifying data upload: {e}")
+
+# Button to verify data upload
+if st.button('Verify Data Upload'):
+    verify_data_upload()
 
 # Load Sentence Transformer model
 @st.cache_resource
