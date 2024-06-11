@@ -62,28 +62,13 @@ client = weaviate.Client(
     auth_client_secret=weaviate.AuthApiKey(api_key="viv4g4LcZpE7DDNQx6Fc9Yj3oK7n6DwIeZWF")  # Replace with your API key
 )
 
-# # Define and create the schema
-# schema = {
-#     "classes": [
-#         {
-#             "class": "DocumentChunk",
-#             "properties": [
-#                 {
-#                     "name": "text",
-#                     "dataType": ["text"]
-#                 },
-#                 {
-#                     "name": "embedding",
-#                     "dataType": ["number[]"],
-#                     "vectorIndexType": "hnsw"
-#                 }
-#             ]
-#         }
-#     ]
-# }
+# Function to verify data upload to Weaviate
+def verify_data_upload():
+    query = client.query.get("DocumentChunk", ["text", "embedding"]).do()
+    st.write("Weaviate data:", query)
 
-# # Create the schema in Weaviate (only run this once)
-# client.schema.create(schema)
+# Verify data upload to Weaviate
+verify_data_upload()
 
 # Function to upload data to Weaviate
 def upload_data_to_weaviate(chunks, embeddings):
