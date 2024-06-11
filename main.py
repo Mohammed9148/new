@@ -121,8 +121,14 @@ def get_relevant_chunk(question):
         "certainty": 0.7  # Adjust based on your requirement
     }
     result = client.query.get("DocumentChunk", ["text"]).with_near_vector(near_vector).do()
-    if result['data']['Get']['DocumentChunk']:
-        return result['data']['Get']['DocumentChunk'][0]['text']
+    
+    # Print the entire response to understand its structure
+    st.write("Weaviate response:", result)
+    
+    # Handle the response safely
+    document_chunks = result.get('data', {}).get('Get', {}).get('DocumentChunk', [])
+    if document_chunks:
+        return document_chunks[0].get('text', "No text found.")
     else:
         return "No relevant chunk found."
 
