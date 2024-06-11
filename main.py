@@ -115,7 +115,7 @@ llm = AzureChatOpenAI(
 
 # Function to perform similarity search and get the most relevant chunk from Weaviate
 def get_relevant_chunk(question):
-    question_embedding = model.encode([question]).tolist()
+    question_embedding = model.encode([question])[0]  # Flatten the list of list
     near_vector = {
         "vector": question_embedding,
         "certainty": 0.7  # Adjust based on your requirement
