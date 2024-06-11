@@ -1,11 +1,10 @@
 import streamlit as st
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-import pickle
+import weaviate
 import requests
 import os
+import pickle
 
 # URL to the preprocessed data file on GitHub
 preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
@@ -52,6 +51,47 @@ except Exception as e:
     st.error(f"Error loading preprocessed data: {e}")
     st.stop()
 
+# Initialize Weaviate client
+client = weaviate.Client(
+    url="https://test-6k1b5vrp.weaviate.network",  # Replace with your Weaviate instance URL
+    auth_client_secret=weaviate.AuthApiKey(api_key="viv4g4LcZpE7DDNQx6Fc9Yj3oK7n6DwIeZWF")  # Replace with your API key
+)
+
+# Define and create the schema
+schema = {
+    "classes": [
+        {
+            "class": "DocumentChunk",
+            "properties": [
+                {
+                    "name": "text",
+                    "dataType": ["text"]
+                },
+                {
+                    "name": "embedding",
+                    "dataType": ["number[]"],
+                    "vectorIndexType": "hnsw"
+                }
+            ]
+        }
+    ]
+}
+
+# Create the schema in Weaviate (only run this once)
+client.schema.create(schema)
+
+# Function to upload data to Weaviate
+def upload_data_to_weaviate(chunks, embeddings):
+    for chunk, embedding in zip(chunks, embeddings):
+        data_object = {
+            "text": chunk,
+            "embedding": embedding.tolist()
+        }
+        client.data_object.create(data_object, "DocumentChunk")
+
+# Upload data to Weaviate
+upload_data_to_weaviate(chunks, embeddings)
+
 # Load Sentence Transformer model
 @st.cache_resource
 def load_model():
@@ -68,18 +108,23 @@ llm = AzureChatOpenAI(
     api_version="2024-02-01",
 )
 
-# Function to perform similarity search and get the most relevant chunk
-def get_relevant_chunk(question, chunks, embeddings):
-    question_embedding = model.encode([question])
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(embeddings)
-    _, I = index.search(question_embedding, 1)
-    return chunks[I[0][0]]
+# Function to perform similarity search and get the most relevant chunk from Weaviate
+def get_relevant_chunk(question):
+    question_embedding = model.encode([question]).tolist()
+    near_vector = {
+        "vector": question_embedding,
+        "certainty": 0.7  # Adjust based on your requirement
+    }
+    result = client.query.get("DocumentChunk", ["text"]).with_near_vector(near_vector).do()
+    if result['data']['Get']['DocumentChunk']:
+        return result['data']['Get']['DocumentChunk'][0]['text']
+    else:
+        return "No relevant chunk found."
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question, chunks, embeddings)
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
         prompt = f"Answer the following question based on this text: {relevant_chunk}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
         response = llm.invoke(prompt)
         st.session_state.response = response.content
