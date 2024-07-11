@@ -6,7 +6,7 @@ import os
 import pickle
 
 # URL to the preprocessed data file
-preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/preprocessed_data.pkl'
+preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/processed_data.pkl'
 
 # Function to download preprocessed data
 @st.cache
