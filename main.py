@@ -1,16 +1,15 @@
 import streamlit as st
 from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
-import weaviate
 import requests
 import os
 import pickle
 
-# URL to the preprocessed data file on GitHub
+# URL to the preprocessed data file
 preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/preprocessed_data.pkl'
 
 # Function to download preprocessed data
-@st.cache_data
+@st.cache
 def download_preprocessed_data(url):
     local_filename = 'preprocessed_data.pkl'
     response = requests.get(url, stream=True)
@@ -19,20 +18,11 @@ def download_preprocessed_data(url):
     with open(local_filename, 'wb') as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
-    
-    # Check the downloaded file size
-    file_size = os.path.getsize(local_filename)
-    st.write(f"Downloaded file size: {file_size} bytes")
-
-    # Optional: Print first few bytes to check content
-    with open(local_filename, 'rb') as f:
-        file_start = f.read(10)
-        st.write(f"File starts with: {file_start}")
 
     return local_filename
 
 # Function to load preprocessed data
-@st.cache_data
+@st.cache
 def load_preprocessed_data(filepath):
     with open(filepath, 'rb') as f:
         data = pickle.load(f)
@@ -42,12 +32,8 @@ def load_preprocessed_data(filepath):
 try:
     data_file = download_preprocessed_data(preprocessed_data_url)
     data = load_preprocessed_data(data_file)
-    # Check if data is a tuple containing chunks and embeddings
-    if isinstance(data, tuple) and len(data) == 2:
-        chunks, embeddings = data
+    if isinstance(data, list):
         st.write("Data loaded successfully.")
-        st.write(f"Number of chunks: {len(chunks)}")
-        st.write(f"Shape of embeddings: {embeddings.shape}")
     else:
         st.error("Data is not in the expected format.")
         st.stop()
@@ -56,40 +42,8 @@ except Exception as e:
     st.error(f"Error loading preprocessed data: {e}")
     st.stop()
 
-# Initialize Weaviate client
-client = weaviate.Client(
-    url="https://test-6k1b5vrp.weaviate.network",  # Replace with your Weaviate instance URL
-    auth_client_secret=weaviate.AuthApiKey(api_key="viv4g4LcZpE7DDNQx6Fc9Yj3oK7n6DwIeZWF")  # Replace with your API key
-)
-
-# Function to upload data to Weaviate
-def upload_data_to_weaviate(chunks, embeddings):
-    for chunk, embedding in zip(chunks, embeddings):
-        data_object = {
-            "text": chunk,
-            "embedding": embedding.tolist()
-        }
-        client.data_object.create(data_object, "DocumentChunk")
-
-# Check if data is already uploaded to Weaviate
-if st.button('Upload Data to Weaviate'):
-    upload_data_to_weaviate(chunks, embeddings)
-    st.write("Data uploaded to Weaviate successfully.")
-
-# Function to verify data upload to Weaviate
-def verify_data_upload():
-    try:
-        query = client.query.get("DocumentChunk", ["text", "embedding"]).do()
-        st.write("Weaviate data:", query)
-    except Exception as e:
-        st.write(f"Error verifying data upload: {e}")
-
-# Button to verify data upload
-if st.button('Verify Data Upload'):
-    verify_data_upload()
-
 # Load Sentence Transformer model
-@st.cache_resource
+@st.cache(allow_output_mutation=True)
 def load_model():
     return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -104,33 +58,26 @@ llm = AzureChatOpenAI(
     api_version="2024-02-01",
 )
 
-# Function to perform similarity search and get the most relevant chunk from Weaviate
-def get_relevant_chunk(question):
-    question_embedding = model.encode([question])[0]  # Flatten the list of list
-    near_vector = {
-        "vector": question_embedding,
-        "certainty": 0.7  # Adjust based on your requirement
-    }
-    try:
-        result = client.query.get("DocumentChunk", ["text"]).with_near_vector(near_vector).do()
+# Function to perform similarity search and get the most relevant chunk from data
+def get_relevant_chunk(question, data):
+    question_embedding = model.encode([question])[0]
+    max_similarity = -1
+    relevant_chunk = None
+
+    for chunk in data:
+        chunk_embedding = chunk['embedding']
+        similarity = model.cosine_similarity([question_embedding], [chunk_embedding])[0][0]
         
-        # Print the entire response to understand its structure
-        st.write("Weaviate response:", result)
-        
-        # Handle the response safely
-        document_chunks = result.get('data', {}).get('Get', {}).get('DocumentChunk', [])
-        if document_chunks:
-            return document_chunks[0].get('text', "No text found.")
-        else:
-            return "No relevant chunk found."
-    except Exception as e:
-        st.error(f"Error during Weaviate query: {e}")
-        return "Error during Weaviate query."
+        if similarity > max_similarity:
+            max_similarity = similarity
+            relevant_chunk = chunk['text']
+
+    return relevant_chunk if relevant_chunk else "No relevant chunk found."
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question, data)
         prompt = f"Answer the following question based on this text: {relevant_chunk}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
         response = llm.invoke(prompt)
         st.session_state.response = response.content
