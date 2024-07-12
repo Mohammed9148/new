@@ -1,9 +1,12 @@
 import streamlit as st
-from langchain_openai import AzureChatOpenAI
 from sentence_transformers import SentenceTransformer
 import requests
 import os
 import pickle
+import openai
+
+# Set your OpenAI API key
+openai.api_key = 'your_openai_api_key_here'  # Replace with your OpenAI API key
 
 # Function to download preprocessed data
 @st.cache_data
@@ -60,15 +63,6 @@ def load_model():
 
 model = load_model()
 
-# Initialize Azure OpenAI model
-llm = AzureChatOpenAI(
-    model="gpt-35-turbo-16k",
-    deployment_name="VISAGenAI",
-    api_key="dbb69df9354846529d8994cb313275e0",  # Replace with your actual API key
-    azure_endpoint="https://visagenai.openai.azure.com/",
-    api_version="2024-02-01",
-)
-
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question):
     question_embedding = model.encode([question])[0]  # Flatten the list of list
@@ -82,11 +76,19 @@ def handle_question():
     if st.session_state.user_question:
         relevant_chunk = get_relevant_chunk(st.session_state.user_question)
         prompt = f"Answer the following question based on this text: {relevant_chunk}\n\nQuestion: {st.session_state.user_question}\nAnswer:"
-        response = llm.invoke(prompt)
-        st.session_state.response = response.content
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        st.session_state.response = response['choices'][0]['message']['content']
 
 # Streamlit app interface
-st.title("PDF Chatbot with Azure OpenAI")
+st.title("PDF Chatbot with OpenAI")
 
 st.text_input("Type your question here:", key="user_question", on_change=handle_question)
 
