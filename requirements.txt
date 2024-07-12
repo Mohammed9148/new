@@ -1,11 +1,5 @@
-streamlit
-langchain
-langchain-community
-pyngrok
-langchain_openai
-PyPDF2
-sentence-transformers
-faiss-cpu
-requests
-numpy
-openai==0.27.2
+streamlit==1.21.0
+sentence-transformers==2.2.2
+requests==2.26.0
+transformers==4.18.0
+torch==1.12.1  # Make sure to match this with your system's capabilities
