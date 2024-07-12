@@ -77,8 +77,7 @@ def handle_question():
         
         st.session_state.response = response['answer']
         
-        # Display response only after question is answered
-        st.write("Response:", st.session_state.response)
+
 
 # Streamlit app interface
 st.title("PDF Chatbot with Hugging Face")
