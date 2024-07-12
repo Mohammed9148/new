@@ -66,22 +66,16 @@ def get_relevant_chunk(question):
     distances = np.dot(embeddings, question_embedding)
     most_relevant_index = np.argmax(distances)
     
-    return chunks[most_relevant_index], distances, most_relevant_index
+    return chunks[most_relevant_index]
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk, distances, most_relevant_index = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         
         st.session_state.response = response['answer']
-        
-        # Display logs only after data is loaded successfully
-        st.write(f"Similarity Scores: {distances}")
-        st.write(f"Most Relevant Index: {most_relevant_index}")
-        st.write(f"Relevant Chunk: {relevant_chunk}")
-        st.write(f"QA Model Response: {response}")
         
         # Display response only after question is answered
         st.write("Response:", st.session_state.response)
