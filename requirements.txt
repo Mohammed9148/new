@@ -8,4 +8,4 @@ sentence-transformers
 faiss-cpu
 requests
 numpy
-weaviate-client
+openai==0.27.2
