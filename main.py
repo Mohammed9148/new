@@ -1,9 +1,10 @@
 import streamlit as st
 from sentence_transformers import SentenceTransformer
+from transformers import pipeline
 import requests
 import os
 import pickle
-from transformers import pipeline
+import numpy as np
 
 # Function to download preprocessed data
 @st.cache_data
@@ -16,15 +17,6 @@ def download_preprocessed_data(url):
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     
-    # Check the downloaded file size
-    file_size = os.path.getsize(local_filename)
-    st.write(f"Downloaded file size: {file_size} bytes")
-
-    # Optional: Print first few bytes to check content
-    with open(local_filename, 'rb') as f:
-        file_start = f.read(10)
-        st.write(f"File starts with: {file_start}")
-
     return local_filename
 
 # Function to load preprocessed data
@@ -69,11 +61,11 @@ qa_model = load_qa_model()
 
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question):
-    question_embedding = model.encode([question])[0]  # Flatten the list of list
-    similarities = model.encode(chunks)
-    distances = model.similarity(question_embedding, similarities)
-    most_relevant_chunk = chunks[distances.argmax()]
-    return most_relevant_chunk
+    question_embedding = model.encode([question])[0]
+    embeddings = model.encode(chunks)
+    distances = np.dot(embeddings, question_embedding)
+    most_relevant_index = np.argmax(distances)
+    return chunks[most_relevant_index]
 
 # Function to handle question submission
 def handle_question():
