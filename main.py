@@ -75,11 +75,7 @@ def get_relevant_chunk(question):
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
-        
-        # Log the relevant chunk
-        st.write(f"Relevant Chunk: {relevant_chunk}")
-        
+       
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         
         # Log the QA model response
