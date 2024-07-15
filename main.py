@@ -1,10 +1,9 @@
 import streamlit as st
+from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 import requests
 import pickle
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
 
 # Function to download preprocessed data
 @st.cache_data
@@ -35,7 +34,6 @@ try:
     # Check if data is in the expected format
     if 'text' in data and 'metadata' in data:
         chunks = data['text']
-        metadata = data['metadata']
         st.write("Data loaded successfully.")
         st.write(f"Number of chunks: {len(chunks)}")
     else:
@@ -64,26 +62,43 @@ qa_model = load_qa_model()
 def get_relevant_chunk(question):
     question_embedding = model.encode([question])[0]
     embeddings = model.encode(chunks)
-    similarities = cosine_similarity([question_embedding], embeddings)
-    most_relevant_index = np.argmax(similarities)
+    distances = np.dot(embeddings, question_embedding)
+    most_relevant_index = np.argmax(distances)
     
-    return chunks[most_relevant_index], metadata[most_relevant_index] if metadata else None
+    return chunks[most_relevant_index]
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk, metadata_info = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
+        
+        # Extracting specific information
+        lines = relevant_chunk.split('\n')
+        info = {}
+        for line in lines:
+            if 'Urgency' in line:
+                info['Urgency'] = line.split(':')[-1].strip()
+            elif 'Next CP' in line:
+                info['Next CP'] = line.split(':')[-1].strip()
+            elif 'Due Date' in line:
+                info['Due Date'] = line.split(':')[-1].strip()
+
         st.session_state.response = response['answer']
-        st.session_state.context = relevant_chunk
+        st.session_state.info = info
 
 # Streamlit app interface
-st.title("PDF Chatbot with Context-Aware Responses")
+st.title("PDF Chatbot with Hugging Face")
 
 st.text_input("Type your question here:", key="user_question", on_change=handle_question)
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-    st.write("Context:")
-    st.write(st.session_state.context)
+
+if "info" in st.session_state:
+    expander = st.expander("Additional Information")
+    with expander:
+        st.write("Due Date:", st.session_state.info.get('Due Date', 'Not Available'))
+        st.write("Next CP:", st.session_state.info.get('Next CP', 'Not Available'))
+        st.write("Urgency:", st.session_state.info.get('Urgency', 'Not Available'))
