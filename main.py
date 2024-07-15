@@ -1,9 +1,9 @@
 import streamlit as st
-from transformers import pipeline
 import requests
 import pickle
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from transformers import pipeline
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Function to download preprocessed data
@@ -67,22 +67,33 @@ def get_relevant_chunk(question):
     similarities = cosine_similarity([question_embedding], embeddings)
     most_relevant_index = np.argmax(similarities)
     
-    return chunks[most_relevant_index]
+    return chunks[most_relevant_index], metadata[most_relevant_index]
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk, metadata = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         st.session_state.response = response['answer']
         st.session_state.context = relevant_chunk
+        st.session_state.metadata = metadata
 
 # Streamlit app interface
-st.title("PDF Chatbot with Context-Aware Responses")
+st.title("PDF Chatbot with Relevant Context")
 
 st.text_input("Type your question here:", key="user_question", on_change=handle_question)
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-    st.write("Context:", st.session_state.context)
+    if "metadata" in st.session_state:
+        st.write("Context:")
+        st.write("Urgency:", st.session_state.metadata.get('Urgency', 'Not Available'))
+        st.write("DRI:", st.session_state.metadata.get('DRI', 'Not Available'))
+        st.write("Next CP:", st.session_state.metadata.get('Next CP', 'Not Available'))
+        st.write("Due Date:", st.session_state.metadata.get('Due Date', 'Not Available'))
+        st.write("Status:", st.session_state.metadata.get('Status', 'Not Available'))
+        st.write("Notes:", st.session_state.metadata.get('Notes', 'Not Available'))
+        st.write("Team Involved:", st.session_state.metadata.get('Team Involved', 'Not Available'))
+        st.write("Blockers:", st.session_state.metadata.get('Blockers', 'None reported'))
+
