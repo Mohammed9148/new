@@ -72,11 +72,15 @@ def get_relevant_chunk(question):
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk, metadata_info = get_relevant_chunk(st.session_state.user_question)
-        
-        response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
-        st.session_state.response = response['answer']
-        st.session_state.metadata = metadata_info  # Store metadata in session state
+        try:
+            relevant_chunk, metadata_info = get_relevant_chunk(st.session_state.user_question)
+            
+            response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
+            st.session_state.response = response['answer']
+            st.session_state.metadata = metadata_info  # Store metadata in session state
+        except IndexError:
+            st.error("IndexError: Failed to find relevant chunk and metadata. Please try again.")
+            st.stop()
 
 # Streamlit app interface
 st.title("PDF Chatbot with Relevant Context")
