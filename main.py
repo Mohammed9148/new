@@ -3,8 +3,8 @@ from transformers import pipeline
 import requests
 import pickle
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Function to download preprocessed data
 @st.cache_data
@@ -62,9 +62,9 @@ qa_model = load_qa_model()
 
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question):
-    question_embedding = model.encode([question])
+    question_embedding = model.encode([question])[0]
     embeddings = model.encode(chunks)
-    similarities = cosine_similarity(question_embedding, embeddings)
+    similarities = cosine_similarity([question_embedding], embeddings)
     most_relevant_index = np.argmax(similarities)
     
     return chunks[most_relevant_index]
