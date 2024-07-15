@@ -28,7 +28,7 @@ def load_preprocessed_data(filepath):
 
 # Ensure the download and loading functions work correctly
 try:
-    preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/processed_data.pkl'
+    preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/preprocessed_data.pkl'
     data_file = download_preprocessed_data(preprocessed_data_url)
     data = load_preprocessed_data(data_file)
 
