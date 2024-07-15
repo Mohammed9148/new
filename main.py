@@ -86,7 +86,7 @@ def handle_question():
                 info['Due Date'] = line.split(':')[-1].strip()
 
         st.session_state.response = response['answer']
-        st.session_state.info = info
+        st.session_state.info = info  # Update session state with current info
 
 # Streamlit app interface
 st.title("PDF Chatbot with Hugging Face")
