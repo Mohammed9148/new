@@ -74,20 +74,8 @@ def handle_question():
         relevant_chunk = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
-        
-        # Extracting specific information
-        lines = relevant_chunk.split('\n')
-        info = {}
-        for line in lines:
-            if 'Urgency' in line:
-                info['Urgency'] = line.split(':')[-1].strip()
-            elif 'Next CP' in line:
-                info['Next CP'] = line.split(':')[-1].strip()
-            elif 'Due Date' in line:
-                info['Due Date'] = line.split(':')[-1].strip()
 
         st.session_state.response = response['answer']
-        st.session_state.info = info
 
 # Streamlit app interface
 st.title("PDF Chatbot with Hugging Face")
@@ -96,10 +84,3 @@ st.text_input("Type your question here:", key="user_question", on_change=handle_
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-
-if "info" in st.session_state:
-    expander = st.expander("Additional Information")
-    with expander:
-        st.write("Due Date:", st.session_state.info.get('Due Date', 'Not Available'))
-        st.write("Next CP:", st.session_state.info.get('Next CP', 'Not Available'))
-        st.write("Urgency:", st.session_state.info.get('Urgency', 'Not Available'))
