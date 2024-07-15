@@ -67,7 +67,10 @@ def get_relevant_chunk(question):
     similarities = cosine_similarity([question_embedding], embeddings)
     most_relevant_index = np.argmax(similarities)
     
-    return chunks[most_relevant_index], metadata[most_relevant_index]  # Ensure both chunk and metadata are returned
+    if most_relevant_index < len(chunks):
+        return chunks[most_relevant_index], metadata[most_relevant_index]
+    else:
+        raise IndexError("Index out of bounds")
 
 # Function to handle question submission
 def handle_question():
