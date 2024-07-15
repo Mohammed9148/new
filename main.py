@@ -67,6 +67,25 @@ def get_relevant_chunk(question):
     
     return chunks[most_relevant_index]
 
+# Function to extract information from the relevant chunk
+def extract_information(relevant_chunk):
+    info = {
+        'Urgency': 'Not Available',
+        'Next CP': 'Not Available',
+        'Due Date': 'Not Available'
+    }
+
+    lines = relevant_chunk.split('\n')
+    for line in lines:
+        if 'Urgency' in line:
+            info['Urgency'] = line.split(':')[-1].strip()
+        elif 'Next CP' in line:
+            info['Next CP'] = line.split(':')[-1].strip()
+        elif 'Due Date' in line:
+            info['Due Date'] = line.split(':')[-1].strip()
+
+    return info
+
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
@@ -74,16 +93,8 @@ def handle_question():
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         
-        # Extracting specific information
-        lines = relevant_chunk.split('\n')
-        info = {}
-        for line in lines:
-            if 'Urgency' in line:
-                info['Urgency'] = line.split(':')[-1].strip()
-            elif 'Next CP' in line:
-                info['Next CP'] = line.split(':')[-1].strip()
-            elif 'Due Date' in line:
-                info['Due Date'] = line.split(':')[-1].strip()
+        # Extract information from the relevant chunk
+        info = extract_information(relevant_chunk)
 
         st.session_state.response = response['answer']
         st.session_state.info = info  # Update session state with current info
