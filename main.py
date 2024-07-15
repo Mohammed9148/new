@@ -28,7 +28,7 @@ def load_preprocessed_data(filepath):
 
 # Ensure the download and loading functions work correctly
 try:
-    preprocessed_data_url = 'https://github.com/Mohammed9148/new/blob/main/preprocessed_data.pkl'
+    preprocessed_data_url = 'https://raw.githubusercontent.com/Mohammed9148/new/main/preprocessed_data.pkl'
     data_file = download_preprocessed_data(preprocessed_data_url)
     data = load_preprocessed_data(data_file)
 
@@ -67,17 +67,16 @@ def get_relevant_chunk(question):
     similarities = cosine_similarity([question_embedding], embeddings)
     most_relevant_index = np.argmax(similarities)
     
-    return chunks[most_relevant_index], metadata[most_relevant_index]
+    return chunks[most_relevant_index], metadata[most_relevant_index]  # Ensure both chunk and metadata are returned
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk, metadata = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk, metadata_info = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         st.session_state.response = response['answer']
-        st.session_state.context = relevant_chunk
-        st.session_state.metadata = metadata
+        st.session_state.metadata = metadata_info  # Store metadata in session state
 
 # Streamlit app interface
 st.title("PDF Chatbot with Relevant Context")
@@ -96,4 +95,3 @@ if "response" in st.session_state:
         st.write("Notes:", st.session_state.metadata.get('Notes', 'Not Available'))
         st.write("Team Involved:", st.session_state.metadata.get('Team Involved', 'Not Available'))
         st.write("Blockers:", st.session_state.metadata.get('Blockers', 'None reported'))
-
