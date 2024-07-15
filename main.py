@@ -62,17 +62,17 @@ qa_model = load_qa_model()
 
 # Function to perform similarity search and get the most relevant chunk
 def get_relevant_chunk(question):
-    question_embedding = model.encode([question])
+    question_embedding = model.encode([question])[0]
     embeddings = model.encode(chunks)
-    similarities = cosine_similarity(question_embedding, embeddings)
+    similarities = cosine_similarity([question_embedding], embeddings)
     most_relevant_index = np.argmax(similarities)
     
-    return chunks[most_relevant_index]
+    return chunks[most_relevant_index], metadata[most_relevant_index] if metadata else None
 
 # Function to handle question submission
 def handle_question():
     if st.session_state.user_question:
-        relevant_chunk = get_relevant_chunk(st.session_state.user_question)
+        relevant_chunk, metadata_info = get_relevant_chunk(st.session_state.user_question)
         
         response = qa_model(question=st.session_state.user_question, context=relevant_chunk)
         st.session_state.response = response['answer']
@@ -85,4 +85,5 @@ st.text_input("Type your question here:", key="user_question", on_change=handle_
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-    st.write("Context:", st.session_state.context)
+    st.write("Context:")
+    st.write(st.session_state.context)
