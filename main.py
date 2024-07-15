@@ -85,7 +85,7 @@ st.text_input("Type your question here:", key="user_question", on_change=handle_
 
 if "response" in st.session_state:
     st.write("Response:", st.session_state.response)
-    if "metadata" in st.session_state:
+    if "metadata" in st.session_state and st.session_state.metadata:
         st.write("Context:")
         st.write("Urgency:", st.session_state.metadata.get('Urgency', 'Not Available'))
         st.write("DRI:", st.session_state.metadata.get('DRI', 'Not Available'))
